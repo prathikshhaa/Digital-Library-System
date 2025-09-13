@@ -77,9 +77,7 @@
             font-size: 12px;
             transition: 0.3s;
         }
-        .borrow-btn { background: linear-gradient(135deg, #ff6a00, #ee0979); color:white; }
-        .borrow-btn:hover { background: linear-gradient(135deg, #ee0979, #ff6a00); }
-        .delete-btn { background: linear-gradient(135deg, #ff0000, #990000); color:white; margin-top:3px; }
+        .delete-btn { background: linear-gradient(135deg, #ff0000, #990000); color:white; }
         .delete-btn:hover { background: linear-gradient(135deg, #990000, #ff0000); }
 
         #message {
@@ -102,8 +100,6 @@
     </div>
 
     <script>
-        const userId = 1; // replace with actual user id
-
         async function loadBooks() {
             const res = await fetch('/see-books');
             const books = await res.json();
@@ -119,7 +115,6 @@
                     <p><b>Author:</b> ${book.author}</p>
                     <p><b>Category:</b> ${book.category}</p>
                     <p><b>Available:</b> ${book.available_copies}</p>
-                    <button class="btn borrow-btn" onclick="borrowBook(${book.book_id}, '${book.title}', this)">Borrow</button>
                     <button class="btn delete-btn" onclick="deleteBook(${book.book_id}, '${book.title}', this)">Delete</button>
                 `;
                 grid.appendChild(card);
@@ -132,23 +127,6 @@
             msgDiv.className = isSuccess ? 'success' : 'error';
             msgDiv.style.display = 'block';
             setTimeout(()=> msgDiv.style.display='none', 3000);
-        }
-
-        async function borrowBook(bookId, title, btn) {
-            const res = await fetch('/borrow-book', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body: JSON.stringify({ user_id: userId, book_id: bookId })
-            });
-            const text = await res.text();
-            showMessage(text, text.includes('✅'));
-            if(text.includes('✅')) {
-                btn.disabled = true;
-                btn.innerText = 'Borrowed';
-                // update available count
-                const availP = btn.previousElementSibling;
-                availP.innerText = `Available: ${parseInt(availP.innerText.split(': ')[1])-1}`;
-            }
         }
 
         async function deleteBook(bookId, title, btn) {
