@@ -24,5 +24,29 @@ It demonstrates practical usage of DBMS concepts like CRUD operations, relations
 - ✅ Environment Variables for sensitive data configuration
 
 ---
+##🚀 Setup Instructions
+#1️⃣ Install Requirements
+
+Node.js
+
+XAMPP (MySQL/MariaDB)
+
+2️⃣ Start MySQL
+
+Open XAMPP Control Panel
+
+Start Apache and MySQL
+
+## Quick commands
+
+```bash
+# start MySQL (XAMPP shell)
+mysql -u root
+
+# install deps
+npm install
+
+# start server
+node server.js
 
 
