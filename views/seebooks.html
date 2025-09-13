@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Books</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: url('/images/library-bg.gif') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top:0; left:0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align:center;
+            margin-bottom:20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+        .books-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: flex-start; /* align to left */
+        }
+        .book-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 10px;
+            text-align:center;
+            width: 140px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .book-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+        }
+        .book-card img {
+            width: 130px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .book-card h3 {
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        .book-card p {
+            font-size: 12px;
+            margin: 2px 0;
+        }
+        .btn {
+            margin-top: 5px;
+            padding: 6px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+        .borrow-btn { background: linear-gradient(135deg, #ff6a00, #ee0979); color:white; }
+        .borrow-btn:hover { background: linear-gradient(135deg, #ee0979, #ff6a00); }
+        .delete-btn { background: linear-gradient(135deg, #ff0000, #990000); color:white; margin-top:3px; }
+        .delete-btn:hover { background: linear-gradient(135deg, #990000, #ff0000); }
+
+        #message {
+            text-align:center;
+            margin: 15px auto;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+            width: fit-content;
+        }
+        .success { background: rgba(0,200,0,0.7);}
+        .error { background: rgba(255,0,0,0.7);}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 Available Books</h1>
+        <div id="message"></div>
+        <div class="books-grid" id="books-grid"></div>
+    </div>
+
+    <script>
+        const userId = 1; // replace with actual user id
+
+        async function loadBooks() {
+            const res = await fetch('/see-books');
+            const books = await res.json();
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = '';
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.innerHTML = `
+                    <img src="/uploads/${book.photo}" alt="${book.title}">
+                    <h3>${book.title}</h3>
+                    <p><b>Author:</b> ${book.author}</p>
+                    <p><b>Category:</b> ${book.category}</p>
+                    <p><b>Available:</b> ${book.available_copies}</p>
+                    <button class="btn borrow-btn" onclick="borrowBook(${book.book_id}, '${book.title}', this)">Borrow</button>
+                    <button class="btn delete-btn" onclick="deleteBook(${book.book_id}, '${book.title}', this)">Delete</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showMessage(text, isSuccess=true) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = text;
+            msgDiv.className = isSuccess ? 'success' : 'error';
+            msgDiv.style.display = 'block';
+            setTimeout(()=> msgDiv.style.display='none', 3000);
+        }
+
+        async function borrowBook(bookId, title, btn) {
+            const res = await fetch('/borrow-book', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ user_id: userId, book_id: bookId })
+            });
+            const text = await res.text();
+            showMessage(text, text.includes('✅'));
+            if(text.includes('✅')) {
+                btn.disabled = true;
+                btn.innerText = 'Borrowed';
+                // update available count
+                const availP = btn.previousElementSibling;
+                availP.innerText = `Available: ${parseInt(availP.innerText.split(': ')[1])-1}`;
+            }
+        }
+
+        async function deleteBook(bookId, title, btn) {
+            if(!confirm(`Are you sure you want to delete "${title}"?`)) return;
+            const res = await fetch(`/delete-book/${bookId}`, { method: 'DELETE' });
+            const text = await res.text();
+            showMessage(text, text.includes('✅'));
+            if(text.includes('✅')) btn.parentElement.remove();
+        }
+
+        window.onload = loadBooks;
+    </script>
+</body>
+</html>

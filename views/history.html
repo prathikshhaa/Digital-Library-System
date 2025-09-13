@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Borrow History</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Borrow History</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>History ID</th>
+                <th>Book Title</th>
+                <th>Borrow Date</th>
+                <th>Return Date</th>
+            </tr>
+        </thead>
+        <tbody id="history-table-body">
+            <!-- Rows will be injected by JS -->
+        </tbody>
+    </table>
+
+    <script>
+        function formatDate(datetime) {
+            if (!datetime) return '-';
+            const options = {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            };
+            return new Date(datetime).toLocaleString('en-US', options);
+        }
+
+        fetch(window.location.pathname + '/data')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('history-table-body');
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.history_id}</td>
+                        <td>${row.title}</td>
+                        <td>${formatDate(row.borrow_date)}</td>
+                        <td>${formatDate(row.return_date)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Member Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: url('/images/library-bg.gif') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top:0; left:0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 0;
+        }
+        .dashboard-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+        }
+        .buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .buttons button {
+            margin: 0 15px;
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: white;
+            transition: 0.3s;
+        }
+        .buttons button:hover {
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filters input, .filters select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .filters input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .filters input:focus, .filters select:focus {
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Books grid */
+        .books-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; 
+            justify-content: flex-start; 
+            margin-left: 0;
+        }
+        .book-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 10px;
+            padding: 5px;
+            text-align: center;
+            width: 150px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .book-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+        }
+        .book-card img {
+            width: 140px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+        .book-card p {
+            font-size: 13px;
+            margin: 3px 0;
+        }
+        .borrow-btn {
+            margin-top: 5px;
+            padding: 6px;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            background: linear-gradient(135deg, #ff6a00, #ee0979);
+            color: white;
+            transition: 0.3s;
+        }
+        .borrow-btn:hover {
+            background: linear-gradient(135deg, #ee0979, #ff6a00);
+        }
+
+        /* Borrowed books */
+        .borrowed-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: flex-start;
+        }
+        .borrowed-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 10px;
+            padding: 10px;
+            width: 160px;
+            text-align: center;
+            position: relative;
+            color: #fff;
+        }
+        .borrowed-card img {
+            width: 140px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .borrowed-card p {
+            margin: 3px 0;
+            font-size: 13px;
+        }
+        .fine {
+            color: #ff4c4c;
+            font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <h1>📚 Member Dashboard</h1>
+    <div class="buttons">
+        <button onclick="showAllBooks()">All Books</button>
+        <button onclick="showMyBooks()">Manage My Books</button>
+    </div>
+
+    <div id="filters" class="filters" style="display:none;">
+        <input type="text" id="searchInput" placeholder="Search by title..." onkeyup="filterBooks()">
+        <select id="categorySelect" onchange="filterBooks()"></select>
+    </div>
+
+    <div id="content"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    let borrowedCount = 0;
+    let allBooks = [];
+    const categories = ["Fantasy", "Classic", "Science", "History", "Technology", "Engineering", "Comedy", "Literature"];
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    async function showAllBooks() {
+        document.getElementById('filters').style.display = 'flex';
+        const res = await fetch('/see-books');
+        allBooks = await res.json();
+
+        const select = document.getElementById('categorySelect');
+        select.innerHTML = `<option value="">All Categories</option>`;
+        categories.forEach(cat => select.innerHTML += `<option value="${cat}">${cat}</option>`);
+
+        renderBooks(allBooks);
+    }
+
+    function renderBooks(books) {
+        const container = document.getElementById('content');
+        container.innerHTML = '<div class="books-grid" id="books-grid"></div>';
+        const grid = document.getElementById('books-grid');
+
+        books.forEach(book => {
+            const card = document.createElement('div');
+            card.className = 'book-card';
+            card.innerHTML = `
+                <img src="/uploads/${book.photo}" alt="${book.title}">
+                <p>${book.title}</p>
+                <p>Available: ${book.available_copies}</p>
+                <button class="borrow-btn" onclick="borrowBook(${book.book_id}, '${book.title}', this)">Borrow</button>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function filterBooks() {
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        const categoryVal = document.getElementById('categorySelect').value;
+        const filtered = allBooks.filter(book => {
+            return book.title.toLowerCase().includes(searchVal) &&
+                   (categoryVal === "" || book.category === categoryVal);
+        });
+        renderBooks(filtered);
+    }
+
+    async function borrowBook(bookId, title, btn) {
+        if (borrowedCount >= 2) return showToast('❌ Maximum 2 books can be borrowed');
+
+        const res = await fetch('/borrow-book', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ book_id: bookId }) // server uses session for user
+        });
+        const data = await res.text();
+        if (data.includes('✅')) {
+            borrowedCount++;
+            btn.disabled = true;
+            btn.innerText = 'Borrowed';
+            showToast(`✅ "${title}" borrowed successfully`);
+            const availP = btn.previousElementSibling;
+            availP.innerText = `Available: ${parseInt(availP.innerText.split(': ')[1])-1}`;
+        } else {
+            showToast(data);
+        }
+    }
+
+    async function showMyBooks() {
+        document.getElementById('filters').style.display = 'none';
+        const res = await fetch(`/history/data`); // server gets user from session
+        const books = await res.json();
+        const container = document.getElementById('content');
+        container.innerHTML = '<div class="borrowed-grid" id="borrowed-grid"></div>';
+        const grid = document.getElementById('borrowed-grid');
+
+        const today = new Date();
+
+        books.forEach(book => {
+            const borrowDate = new Date(book.borrow_date);
+            const dueDate = new Date(borrowDate);
+            dueDate.setDate(dueDate.getDate() + 15);
+            let fine = 0;
+            if (today > dueDate) {
+                const diffDays = Math.ceil((today - dueDate)/(1000*60*60*24));
+                fine = diffDays * 5;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'borrowed-card';
+            card.innerHTML = `
+                <img src="/uploads/${book.photo}" alt="${book.title}">
+                <p><b>${book.title}</b></p>
+                <p>Borrowed: ${book.borrow_date.split('T')[0]}</p>
+                <p>Due: ${dueDate.toISOString().split('T')[0]}</p>
+                ${fine > 0 ? `<p class="fine">Fine: ₹${fine}</p>` : ''}
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    window.onload = showAllBooks;
+</script>
+</body>
+</html>

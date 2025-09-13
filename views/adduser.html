@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add User - Library</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .message-box {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success {
+            background: #e6ffed;
+            color: #1a7f37;
+            border: 1px solid #1a7f37;
+        }
+        .error {
+            background: #ffe6e6;
+            color: #a10000;
+            border: 1px solid #a10000;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper adduser-wrapper">
+        <div class="login-card adduser-card">
+            <h1>Add User</h1>
+            <div class="subtitle">Fill in the details below</div>
+
+            <form id="addUserForm">
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <select name="role" required>
+                    <option value="">Select Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="member">Member</option>
+                </select>
+                <button type="submit">Add User</button>
+            </form>
+
+            <!-- Unique Message Box -->
+            <div id="messageBox" class="message-box"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById("addUserForm");
+        const msgBox = document.getElementById("messageBox");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch("/add-user", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                // Show message
+                msgBox.style.display = "block";
+                if (result.success) {
+                    msgBox.className = "message-box success";
+                    msgBox.textContent = "✅ User added successfully!";
+                    form.reset();
+                } else {
+                    msgBox.className = "message-box error";
+                    msgBox.textContent = "❌ " + result.message;
+                }
+            } catch (err) {
+                msgBox.style.display = "block";
+                msgBox.className = "message-box error";
+                msgBox.textContent = "⚠️ Something went wrong!";
+            }
+        });
+    </script>
+</body>
+</html>
