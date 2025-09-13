@@ -17,9 +17,9 @@ It demonstrates practical usage of DBMS concepts like CRUD operations, relations
 ---
 
 ## 🚀 Technologies Used
-- ✅ Database: MySQL  
-- ✅ Backend: Node.js (Express.js)  
-- ✅ Frontend: HTML, CSS, JavaScript  
+- ✅ Database: MySQL (phpMyAdmin) 
+- ✅ Backend: Node.js  
+- ✅ Frontend: HTML, CSS  
 - ✅ Version Control: Git & GitHub  
 - ✅ Environment Variables for sensitive data configuration
 
