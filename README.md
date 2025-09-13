@@ -24,12 +24,10 @@ It demonstrates practical usage of DBMS concepts like CRUD operations, relations
 - ✅ Environment Variables for sensitive data configuration
 
 ---
-##🚀 Setup Instructions
-#1️⃣ Install Requirements
+🚀 Setup Instructions
+1️⃣ Install Requirements
 
 Node.js
-
-XAMPP (MySQL/MariaDB)
 
 2️⃣ Start MySQL
 
