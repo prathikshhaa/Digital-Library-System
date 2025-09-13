@@ -46,7 +46,15 @@ mysql -u root
 # install deps
 npm install
 
-# start server
+# Install dependencies
+npm install express mysql body-parser
+
+# (Optional) Install nodemon globally
+npm install -g nodemon
+
+# Start the server
 node server.js
+
+
 
 
