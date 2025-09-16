@@ -278,29 +278,52 @@
         const today = new Date();
 
         books.forEach(book => {
-            const borrowDate = new Date(book.borrow_date);
-            const dueDate = new Date(borrowDate);
-            dueDate.setDate(dueDate.getDate() + 15);
-            let fine = 0;
-            if (today > dueDate) {
-                const diffDays = Math.ceil((today - dueDate)/(1000*60*60*24));
-                fine = diffDays * 5;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'borrowed-card';
-            card.innerHTML = `
-                <img src="/uploads/${book.photo}" alt="${book.title}">
-                <p><b>${book.title}</b></p>
-                <p>Borrowed: ${book.borrow_date.split('T')[0]}</p>
-                <p>Due: ${dueDate.toISOString().split('T')[0]}</p>
-                ${fine > 0 ? `<p class="fine">Fine: ₹${fine}</p>` : ''}
-            `;
-            grid.appendChild(card);
-        });
+    const borrowDate = new Date(book.borrow_date);
+    const dueDate = new Date(borrowDate);
+    dueDate.setDate(dueDate.getDate() + 15);
+    let fine = 0;
+    if (today > dueDate) {
+        const diffDays = Math.ceil((today - dueDate)/(1000*60*60*24));
+        fine = diffDays * 5;
     }
 
-    window.onload = showAllBooks;
+    const card = document.createElement('div');
+    card.className = 'borrowed-card';
+    card.innerHTML = `
+        <img src="/uploads/${book.photo}" alt="${book.title}">
+        <p><b>${book.title}</b></p>
+        <p>Borrowed: ${book.borrow_date.split('T')[0]}</p>
+        <p>Due: ${dueDate.toISOString().split('T')[0]}</p>
+        ${fine > 0 ? `<p class="fine">Fine: ₹${fine}</p>` : ''}
+        ${book.return_date ? `<p>Returned: ${book.return_date.split('T')[0]}</p>` :
+            `<button class="borrow-btn" onclick="returnBook(${book.history_id}, ${book.book_id}, this)">Return</button>`}
+    `;
+    grid.appendChild(card);
+});
+}
+async function returnBook(historyId, bookId, btn) {
+    const res = await fetch('/return-book', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ history_id: historyId, book_id: bookId })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        showToast(data.message);
+        btn.disabled = true;
+        btn.innerText = 'Returned';
+        // Optionally, show return date
+        const returnDateP = document.createElement('p');
+        returnDateP.textContent = `Returned: ${data.return_date}`;
+        btn.parentElement.appendChild(returnDateP);
+    } else {
+        showToast('❌ Failed to return book');
+    }
+}
+
+
+window.onload = showAllBooks;
 </script>
 </body>
 </html>
