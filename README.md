@@ -1,7 +1,7 @@
 # Digital-Library-System
 
 ## 📚 Project Description
-The **Digital Library System** is a web-based application designed to automate library operations such as managing books, members, issuing and returning books, fine calculation, and searching for books.  
+The **Digital Library System** is a web-based application designed to automate library operations such as managing books, members, issuing and returning books, and searching for books.  
 It demonstrates practical usage of DBMS concepts like CRUD operations, relationships, and data integrity, providing a simple interface for easy management of library resources.
 
 ---
